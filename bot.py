@@ -1,38 +1,32 @@
-!pip install pyTelegramBotAPI
 import telebot
+import os
 
-# ۱. توکن ربات تلگرام خود را اینجا بگذارید
 TELEGRAM_TOKEN = "9113193987:AAEMQo4_0CJgX8xWXfqY9Rf1hv_7jBizvfw"
-
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     welcome_text = (
         "سلام! من دستیار هوشمندِ سمیه رنجبر (دانشجوی دکترای هوش مصنوعی) هستم.\n"
-        "در حال حاضر ایشان مشغول پژوهش و کارهای دانشگاهی هستند. "
-        "پیام شما دریافت شد و به ایشان اطلاع داده خواهد شد.\n\n"
-        "لطفاً پیام، سوال یا موضوع خود را بگذارید."
+        "در حال حاضر ایشان مشغول پژوهش هستند. لطفاً پیام یا موضوع خود را بگذارید."
     )
     bot.reply_to(message, welcome_text)
 
 @bot.message_handler(func=lambda m: True)
 def handle_message(message):
-    user_name = message.from_user.first_name or "دوست عزیز"
-    user_text = message.text
+    user_text = message.text.lower()
     
-    # پاسخ هوشمند و ساختاریافته‌ی محلی (بدون نیاز به اینترنت خارجی یا API)
-    reply_text = (
-        f"سلام {user_name} عزیز.\n"
-        f"پیام شما با متن: «{user_text}» به دست من رسید.\n\n"
-        "خانم رنجبر در اولین فرصت پس از بررسی پژوهشی، پیام شما را مطالعه و پاسخ خواهند داد."
-    )
+    # پاسخ‌های هوشمندِ قاعده‌مند بر اساس کلمات کلیدی پیام کاربر
+    if "سلام" in user_text or "درود" in user_text:
+        reply = "سلام و درود! پیام شما دریافت شد. خانم رنجبر در اولین فرصت بررسی خواهند کرد."
+    elif "پروژه" in user_text or "پژوهش" in user_text or "مقاله" in user_text:
+        reply = "موضوع پژوهشی شما ثبت شد. توضیحات تکمیلی یا فایل‌های مربوطه را بفرستید تا به دست خانم رنجبر برسد."
+    elif "قیمت" in user_text or "هزینه" in user_text:
+        reply = "لطفاً جزئیات درخواست خود را مکتوب ارسال کنید تا بررسی شود."
+    else:
+        reply = f"پیام شما با متن («{message.text}») دریافت شد. خانم رنجبر پس از فراغت از کارهای پژوهشی پاسخ خواهند داد."
     
-    bot.reply_to(message, reply_text)
-    
-    # (اختیاری) اگر خواستید می‌توانید پیام دریافتی را برای خودتان به عنوان ادمین هم فوروارد کنید
-    # ADMIN_ID = 5640608870
-    # bot.forward_message(ADMIN_ID, message.chat.id, message.id)
+    bot.reply_to(message, reply)
 
-print("ربات پاسخگوی خودکارِ سمیه رنجبر روشن شد و آماده به کار است...")
+print("ربات روشن است...")
 bot.infinity_polling()
