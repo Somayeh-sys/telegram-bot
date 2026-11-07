@@ -1,35 +1,42 @@
+import os
+import threading
+from flask import Flask
 import telebot
 import jdatetime
 
-# ۱. توکن جدید شما
-TELEGRAM_TOKEN = "9113193987:AAFLP8sUWF6pIPiKsd8Fp9I_bSHhVY4Wo-M"
+# --- 1. وب‌سرور کوچک برای فریب دادن رندر و زنده ماندن ربات ---
+app = Flask(__name__)
 
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
+@app.route('/')
+def home():
+    return "Bot is alive and running 24/7!"
 
-@bot.message_handler(commands=['start'])
+def run_web():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# اجرای وب‌سرور در پس‌زمینه
+threading.Thread(target=run_web, daemon=True).start()
+
+# --- 2. کدهای اصلی ربات تلگرام ---
+TOKEN = "9113193987:AAFLP8sUWF6pIPiKsd8Fp9I_bSHhVY4Wo-M"  # اگر توکن جدید گرفتید، این توکن را جایگزین کنید
+bot = telebot.TeleBot(TOKEN)
+
+@bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    welcome_text = (
-        "سلام! من دستیار هوشمندِ سمیه رنجبر (دانشجوی دکترای هوش مصنوعی) هستم.\n"
-        "در حال حاضر ایشان مشغول پژوهش و کارهای دانشگاهی هستند. "
-        "پیام شما دریافت شد و به ایشان اطلاع داده خواهد شد.\n\n"
-        "لطفاً پیام، سوال یا موضوع خود را بگذارید."
-    )
-    bot.reply_to(message, welcome_text)
+    bot.reply_to(message, "سلام! ربات فعال و آنلاین است. چطور می‌توانم کمکتان کنم؟")
 
 @bot.message_handler(func=lambda message: True)
-def handle_all_messages(message):
-    text = message.text.strip()
+def echo_all(message):
+    text = message.text.lower() if message.text else ""
     
-    # پاسخ به سوال تاریخ
-    if "امروز چندم" in text or "تاریخ امروز" in text or "تاریخ" in text:
-        today_jalali = jdatetime.date.today()
-        months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-        month_name = months[today_jalali.month - 1]
-        date_str = f"امروز {today_jalali.day} {month_name} سال {today_jalali.year} است."
-        bot.reply_to(message, date_str)
+    if "امروز چندم" in text or "تاریخ" in text:
+        today = jdatetime.date.today().strftime("%Y/%m/%d")
+        bot.reply_to(message, f"امروز: {today}")
+    elif "سلام" in text:
+        bot.reply_to(message, "سلام، روزتون بخیر! پیام شما دریافت شد.")
     else:
-        # پاسخ پیش‌فرض برای بقیه پیام‌ها
-        bot.reply_to(message, "پیام شما دریافت شد. خانم رنجبر در اولین فرصت بررسی خواهند کرد.")
+        bot.reply_to(message, "پیام شما دریافت شد. در اسرع وقت پاسخ خواهم داد.")
 
-print("ربات روشن است...")
+print("Bot is polling...")
 bot.infinity_polling()
