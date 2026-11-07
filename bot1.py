@@ -5,18 +5,17 @@ from telebot import types
 from flask import Flask
 import jdatetime
 
-# ==================== تنظیمات اصلی ====================
-# توکن ربات شما
+# ==================== تنظیمات ====================
+# توکن ربات
 BOT_TOKEN = "9113193987:AAFLP8sUWF6pIPiKsd8Fp9I_bSHhVY4Wo-M"
 
-# آیدی عددی تلگرام خودتان (برای دریافت نوتیفیکیشن‌ها و فیش‌ها)
-# از ربات @userinfobot در تلگرام بگیرید
-ADMIN_CHAT_ID = "5640608870"  # مثلا: "123456789"
+# شناسه عددی تلگرام شما برای دریافت اعلان‌ها (اگر هنوز نگرفتید، همین بماند مشکلی پیش نمی‌آید)
+ADMIN_CHAT_ID = 5640608870
 
-# اطلاعات کارت بانکی شما برای پرداخت شهریه
+# مشخصات کارت بانکی
 CARD_NUMBER = "6219-8614-9142-6085"
 CARD_HOLDER = "سمیه رنجبر"
-TUITION_FEE = "تماس / هماهنگی با مربی (700 هزار تومان)"
+TUITION_FEE = "هماهنگی با مربی"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
@@ -25,8 +24,9 @@ app = Flask(__name__)
 def home():
     return "Bot is running 24/7!"
 
-# تابع کمکی برای ارسال لاگ کاربری به پیوی شما
 def notify_admin(user, action_text):
+    if not ADMIN_CHAT_ID or ADMIN_CHAT_ID == "YOUR_TELEGRAM_NUMERIC_ID":
+        return
     try:
         username = f"@{user.username}" if user.username else "ندارد"
         full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
@@ -42,9 +42,8 @@ def notify_admin(user, action_text):
         )
         bot.send_message(ADMIN_CHAT_ID, msg, parse_mode="Markdown")
     except Exception as e:
-        print(f"Error notifying admin: {e}")
+        print(f"Admin notify error: {e}")
 
-# منوی اصلی
 def main_menu():
     markup = types.InlineKeyboardMarkup(row_width=2)
     b1 = types.InlineKeyboardButton("📄 راهنمایی مقاله", callback_data="paper_guide")
@@ -57,7 +56,6 @@ def main_menu():
     markup.add(b4, b5)
     return markup
 
-# زیرمنوی باشگاه
 def gym_menu():
     markup = types.InlineKeyboardMarkup(row_width=1)
     b1 = types.InlineKeyboardButton("⏰ مشاهده برنامه هفتگی سانس‌ها", callback_data="gym_schedule")
@@ -165,33 +163,32 @@ def callback_handler(call):
         )
         bot.send_message(call.message.chat.id, ans, parse_mode="Markdown")
 
-# دریافت عکس فیش واریزی یا مدارک و فوروارد به شما
 @bot.message_handler(content_types=['photo'])
 def handle_receipt_photo(message):
-    notify_admin(message.from_user, "📸 ارسال عکس فیش واریزی یا مدرک")
-    
-    # ارسال عکس مستقیم به پیوی شما
-    caption = (
-        f"💳 **فیش واریزی جدید دریافت شد!**\n"
-        f"از طرف: {message.from_user.first_name} (@{message.from_user.username})\n"
-        f"شناسه کاربر: `{message.from_user.id}`"
-    )
-    bot.send_photo(ADMIN_CHAT_ID, message.photo[-1].file_id, caption=caption, parse_mode="Markdown")
-    
-    # پاسخ به کاربر
-    bot.reply_to(message, "✅ فیش واریزی شما با موفقیت دریافت شد و برای مربی/مدیر ارسال گردید. پس از بررسی نتیجه به شما اعلام خواهد شد. تشکر از شما! 🌸")
+    notify_admin(message.from_user, "📸 ارسال عکس فیش یا مدرک")
+    if ADMIN_CHAT_ID and ADMIN_CHAT_ID != "YOUR_TELEGRAM_NUMERIC_ID":
+        try:
+            caption = (
+                f"💳 **فیش واریزی جدید دریافت شد!**\n"
+                f"از طرف: {message.from_user.first_name} (@{message.from_user.username})\n"
+                f"شناسه کاربر: `{message.from_user.id}`"
+            )
+            bot.send_photo(ADMIN_CHAT_ID, message.photo[-1].file_id, caption=caption, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error forwarding receipt: {e}")
+            
+    bot.reply_to(message, "✅ فیش واریزی یا مدرک شما دریافت شد و برای مربی/مدیر ارسال گردید. پس از بررسی نتیجه اعلام خواهد شد. تشکر از شما! 🌸")
 
-# دریافت سایر پیام‌های متنی متفرقه کاربران
 @bot.message_handler(func=lambda message: True)
 def handle_all_messages(message):
-    notify_admin(message.from_user, f"پیام متنی: {message.text}")
+    notify_admin(message.from_user, f"متن: {message.text}")
     bot.reply_to(message, "پیام شما دریافت شد. در اولین فرصت بررسی و به شما پاسخ داده خواهد شد. 🌸")
 
-def run_telebot():
-    bot.infinity_polling(skip_pending=True)
+# شروع ترد تلگرام مستقیماً هنگام بارگذاری ماژول توسط گونیکورن
+def start_bot_thread():
+    try:
+        bot.infinity_polling(skip_pending=True)
+    except Exception as e:
+        print(f"Telebot polling error: {e}")
 
-if __name__ == '__main__':
-    t = threading.Thread(target=run_telebot)
-    t.start()
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+threading.Thread(target=start_bot_thread, daemon=True).start()
