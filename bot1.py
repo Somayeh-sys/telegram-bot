@@ -11,7 +11,7 @@ BOT_TOKEN = "9113193987:AAFLP8sUWF6pIPiKsd8Fp9I_bSHhVY4Wo-M"
 
 # آیدی عددی تلگرام خودتان (برای دریافت نوتیفیکیشن‌ها و فیش‌ها)
 # از ربات @userinfobot در تلگرام بگیرید
-ADMIN_CHAT_ID = "YOUR_TELEGRAM_NUMERIC_ID"  # مثلا: "123456789"
+ADMIN_CHAT_ID = "5640608870"  # مثلا: "123456789"
 
 # اطلاعات کارت بانکی شما برای پرداخت شهریه
 CARD_NUMBER = "6219-8614-9142-6085"
