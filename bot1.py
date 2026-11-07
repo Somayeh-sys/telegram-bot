@@ -2,7 +2,7 @@ import telebot
 import jdatetime
 
 # ۱. توکن جدید شما
-TELEGRAM_TOKEN = "9113193987:AAFAKaeh1nm0zmOlqrjak9qKIOugp2Bveqk"
+TELEGRAM_TOKEN = "9113193987:AAFLP8sUWF6pIPiKsd8Fp9I_bSHhVY4Wo-M"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
