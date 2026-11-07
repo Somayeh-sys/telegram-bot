@@ -54,11 +54,13 @@ def callback_inline(call):
         )
     elif call.data == "gym_time":
         text = (
-            "🏋️‍♂️ **تایم باشگاه:**\n\n"
-            "برنامه و سانس‌های ورزشی:\n"
-            "• روزهای زوج: ۱۷:۰۰ الی ۱۹:۰۰\n"
-            "• روزهای فرد: ۱۸:۰۰ الی ۲۰:۰۰\n\n"
-            "در صورت تغییر در سانس‌ها یا هماهنگی ویژه، از همین طریق اطلاع‌رسانی می‌شود."
+            "🏋️‍♂️ **برنامه و تایم‌های باشگاه:**\n\n"
+            "🥋 **کونگ‌فو بانوان:** روزهای فرد | ساعت ۱۶:۰۰ الی ۱۷:۳۰\n"
+            "🤸‍♀️ **ژیمناستیک مبتدی:** روزهای زوج | ساعت ۱۷:۰۰ الی ۱۸:۰۰\n"
+            "🤸‍♂️ **ژیمناستیک پیشرفته:** روزهای فرد | ساعت ۱۷:۳۰ الی ۱۸:۳۰\n"
+            "🥋 **کونگ‌فو آقایان:** روزهای زوج | ساعت ۱۸:۰۰ الی ۲۰:۰۰\n"
+            "🥋 **کونگ‌فو آقایان بزرگسال:** روزهای زوج | ساعت ۲۰:۰۰ الی ۲۱:۳۰\n"
+            "🥋 **تکواندو:** روزهای زوج | ساعت ۱۵:۳۰ الی ۱۷:۰۰\n"
         )
     elif call.data == "azad_univ":
         text = (
@@ -76,6 +78,15 @@ def callback_inline(call):
             "• پروژه‌های عملی و کدها را به صورت فایل یا متن خوانا بفرستید.\n"
             "بررسی و پاسخ به نوبت خدمت شما ارسال می‌گردد."
         )
+    elif call.data == "main_menu":
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text="لطفاً موضوع مورد نظر خود را انتخاب کنید:",
+            reply_markup=get_main_menu()
+        )
+        bot.answer_callback_query(call.id)
+        return
     else:
         text = "گزینه نامعتبر است."
 
@@ -83,22 +94,13 @@ def callback_inline(call):
     back_markup = types.InlineKeyboardMarkup()
     back_markup.add(types.InlineKeyboardButton("🔙 بازگشت به منوی اصلی", callback_data="main_menu"))
     
-    if call.data == "main_menu":
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text="لطفاً موضوع مورد نظر خود را انتخاب کنید:",
-            reply_markup=get_main_menu()
-        )
-    else:
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=text,
-            reply_markup=back_markup,
-            parse_mode="Markdown"
-        )
-    
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=text,
+        reply_markup=back_markup,
+        parse_mode="Markdown"
+    )
     bot.answer_callback_query(call.id)
 
 # پاسخ به پیام‌های متنی عادی
@@ -110,9 +112,9 @@ def echo_all(message):
         today = jdatetime.date.today().strftime("%Y/%m/%d")
         bot.reply_to(message, f"📅 امروز: {today}")
     elif "سلام" in text or "درود" in text:
-        bot.reply_to(message, "سلام، روزتون بخیر! لطفاً یکی از گزینه‌های منو را انتخاب کنید یا پیام خود را بنویسید:", reply_markup=get_main_menu())
+        bot.reply_to(message, "سلام، روزتون بخیر! لطفاً یکی از گزینه‌های منو را انتخاب کنید:", reply_markup=get_main_menu())
     else:
-        bot.reply_to(message, "پیام شما دریافت شد. در اسرع وقت پاسخ داده خواهد شد.\n\nبا احترام، سمیه رنجبر", reply_markup=get_main_menu())
+        bot.reply_to(message, "پیام شما دریافت شد. در اسرع وقت بررسی خواهد شد.\n\nبا احترام، سمیه رنجبر", reply_markup=get_main_menu())
 
 # وب‌سرور برای زنده نگه‌داشتن روی رندر
 app = Flask(__name__)
